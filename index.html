@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <style>
     :root {
       --glass-bg: rgba(255, 255, 255, 0.05);
@@ -28,6 +29,8 @@
         radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
       background-attachment: fixed;
       color: #e2e8f0;
+      perspective: 1000px;
+      /* Global perspective for 3D elements */
     }
 
     /* Custom Glass Class */
@@ -37,12 +40,14 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--glass-border);
       box-shadow: var(--glass-shadow);
+      transform-style: preserve-3d;
+      /* Essential for 3D children */
     }
 
     .glass-heavy {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--glass-border);
     }
 
@@ -75,15 +80,15 @@
     /* Floating Animation */
     @keyframes float {
       0% {
-        transform: translateY(0px);
+        transform: translateY(0px) translateZ(0);
       }
 
       50% {
-        transform: translateY(-10px);
+        transform: translateY(-15px) translateZ(10px);
       }
 
       100% {
-        transform: translateY(0px);
+        transform: translateY(0px) translateZ(0);
       }
     }
 
@@ -96,6 +101,39 @@
       background: linear-gradient(135deg, #60a5fa, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+    }
+
+    /* Modal Animation */
+    .modal-enter {
+      animation: modalIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .modal-exit {
+      animation: modalOut 0.3s ease-in forwards;
+    }
+
+    @keyframes modalIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) rotateX(15deg) translateY(50px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) rotateX(0deg) translateY(0);
+      }
+    }
+
+    @keyframes modalOut {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(0.9);
+      }
     }
 
     /* Scrollbar */
@@ -119,24 +157,35 @@
   <script>
     function openModal(id) {
       const modal = document.getElementById(id);
+      const modalContent = modal.querySelector('.modal-content');
       modal.classList.remove("hidden");
-      // Simple entry animation
-      modal.firstElementChild.classList.remove("scale-95", "opacity-0");
-      modal.firstElementChild.classList.add("scale-100", "opacity-100");
+      modalContent.classList.remove("modal-exit");
+      modalContent.classList.add("modal-enter");
     }
 
     function closeModal(id) {
       const modal = document.getElementById(id);
-      modal.firstElementChild.classList.remove("scale-100", "opacity-100");
-      modal.firstElementChild.classList.add("scale-95", "opacity-0");
+      const modalContent = modal.querySelector('.modal-content');
+      modalContent.classList.remove("modal-enter");
+      modalContent.classList.add("modal-exit");
+
       setTimeout(() => {
         modal.classList.add("hidden");
-      }, 200);
+      }, 300); // Match animation duration
     }
 
+    // Initialize Tilt on load
     document.addEventListener("DOMContentLoaded", function () {
-      const form = document.querySelector("#contact form");
+      VanillaTilt.init(document.querySelectorAll(".tilt-card"), {
+        max: 15,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.2,
+        scale: 1.02
+      });
 
+      // Contact form handler
+      const form = document.querySelector("#contact form");
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
         const formData = new FormData(form);
@@ -210,12 +259,20 @@
       class="absolute bottom-10 right-10 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"
       style="animation-delay: 2s;"></div>
 
+    <!-- 3D Decorative Element -->
+    <div class="absolute inset-0 pointer-events-none flex justify-center items-center opacity-30">
+      <div class="w-[500px] h-[500px] border border-white/5 rounded-full animate-spin [animation-duration:20s]"></div>
+      <div
+        class="w-[700px] h-[700px] border border-white/5 rounded-full absolute animate-spin [animation-duration:30s] [animation-direction:reverse]">
+      </div>
+    </div>
+
     <div class="max-w-4xl mx-auto px-6 text-center z-10">
       <div
         class="inline-block mb-4 px-4 py-1 rounded-full glass text-sm font-medium text-blue-300 border border-blue-500/30">
         🚀 Welcome to my portfolio
       </div>
-      <h1 class="text-6xl md:text-8xl font-extrabold mb-6 tracking-tight leading-tight">
+      <h1 class="text-6xl md:text-8xl font-extrabold mb-6 tracking-tight leading-tight drop-shadow-2xl">
         Hi, I'm <span class="text-gradient">Mayank</span>
       </h1>
       <div class="h-12 md:h-16 mb-6 flex justify-center">
@@ -224,18 +281,18 @@
         </span>
       </div>
       <p class="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-        Transforming ideas into secure, scalable web applications. Currently bridging the gap between <span
-          class="text-blue-400 font-semibold">Web Development</span> and <span
-          class="text-purple-400 font-semibold">Artificial Intelligence</span>.
+        Transforming ideas into <b class="text-white">secure</b>, <b class="text-white">scalable</b> web applications.
+        Bridging the gap between <span class="text-blue-400 font-semibold">Development</span> and <span
+          class="text-purple-400 font-semibold">Intelligence</span>.
       </p>
 
       <div class="flex flex-col sm:flex-row justify-center gap-4">
         <a href="#projects"
-          class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition hover:scale-105 shadow-lg shadow-blue-500/25">
+          class="tilt-card px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
           View My Work
         </a>
         <a href="#contact"
-          class="px-8 py-4 glass text-white hover:bg-white/10 rounded-xl font-semibold transition hover:scale-105">
+          class="tilt-card px-8 py-4 glass text-white hover:bg-white/10 rounded-xl font-semibold transition">
           Contact Me
         </a>
       </div>
@@ -245,7 +302,8 @@
   <!-- About Section -->
   <section id="about" class="py-24 px-6 relative">
     <div class="max-w-5xl mx-auto">
-      <div class="glass p-10 md:p-14 rounded-3xl border border-white/5 relative overflow-hidden">
+      <div class="glass p-10 md:p-14 rounded-3xl border border-white/5 relative overflow-hidden tilt-card"
+        data-tilt-max="3">
         <!-- Decorative gradient inside card -->
         <div
           class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none">
@@ -256,15 +314,19 @@
         </h3>
 
         <div class="flex flex-col md:flex-row items-center gap-12">
+          <!-- Profile 3D Effect Placeholder -->
           <div
-            class="w-40 h-40 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-6xl shadow-2xl border-4 border-gray-700/50 relative group">
-            <span class="group-hover:scale-110 transition duration-300 cursor-default">👨‍💻</span>
+            class="tilt-card w-40 h-40 md:w-48 md:h-48 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-6xl shadow-2xl border border-gray-600 relative group overflow-hidden">
+            <div class="absolute inset-0 bg-blue-500/10 group-hover:bg-blue-500/0 transition"></div>
+            <span
+              class="group-hover:scale-110 transition duration-300 cursor-default transform translate-z-10">👨‍💻</span>
             <!-- Status Dot -->
-            <div class="absolute bottom-2 right-4 w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900"
+            <div
+              class="absolute bottom-2 right-4 w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900 shadow-glow-green"
               title="Available for work"></div>
           </div>
 
-          <div class="flex-1 space-y-6 text-gray-300 text-lg leading-relaxed">
+          <div class="flex-1 space-y-6 text-gray-300 text-lg leading-relaxed mix-blend-lighten">
             <p>
               I'm a final year <strong class="text-white">Computer Science & AI</strong> student at <span
                 class="text-blue-400">PSIT Kanpur</span>. My journey started with a curiosity for how things work on the
@@ -294,53 +356,56 @@
       <h3 class="text-4xl font-bold mb-16 text-center"><span class="text-gradient">Technical Arsenal</span></h3>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <!-- Skill Items -->
+        <!-- Skill Items with Tilt -->
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
-            class="w-12 h-12 mb-4" alt="JS">
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(255,255,0,0.5)] transition" alt="JS">
           <h4 class="font-semibold text-white">JavaScript</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
-          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" class="w-12 h-12 mb-4"
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
+            class="w-12 h-12 mb-4 group-hover:animate-spin-slow group-hover:drop-shadow-[0_0_15px_rgba(97,218,251,0.5)]"
             alt="React">
           <h4 class="font-semibold text-white">React.js</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg"
-            class="w-12 h-12 mb-4" alt="Node">
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(51,153,51,0.5)]" alt="Node">
           <h4 class="font-semibold text-white">Node.js</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg"
-            class="w-12 h-12 mb-4" alt="Python">
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(55,118,171,0.5)]" alt="Python">
           <h4 class="font-semibold text-white">Python</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
           <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg"
-            class="w-12 h-12 mb-4" alt="Mongo">
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(77,179,61,0.5)]" alt="Mongo">
           <h4 class="font-semibold text-white">MongoDB</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
-          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" class="w-12 h-12 mb-4"
-            alt="Java">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg"
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(248,152,32,0.5)]" alt="Java">
           <h4 class="font-semibold text-white">Java</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
           <!-- SQL Icon substitute -->
-          <div class="w-12 h-12 mb-4 flex items-center justify-center text-2xl">🗄️</div>
+          <div
+            class="w-12 h-12 mb-4 flex items-center justify-center text-2xl group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
+            🗄️</div>
           <h4 class="font-semibold text-white">SQL</h4>
         </div>
         <div
-          class="glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition hover:-translate-y-2 duration-300">
-          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" class="w-12 h-12 mb-4"
-            alt="Git">
+          class="tilt-card glass p-6 rounded-2xl flex flex-col items-center hover:bg-white/5 transition duration-300 cursor-default group">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg"
+            class="w-12 h-12 mb-4 group-hover:drop-shadow-[0_0_15px_rgba(240,80,50,0.5)]" alt="Git">
           <h4 class="font-semibold text-white">Git</h4>
         </div>
       </div>
@@ -351,97 +416,101 @@
   <section id="projects" class="py-24 px-6 relative">
     <div class="max-w-7xl mx-auto">
       <h3 class="text-4xl font-bold mb-4 text-center">Featured Projects</h3>
-      <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">A selection of my recent work, featuring full-stack
-        applications and AI integrations.</p>
+      <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">A selection of my recent work. Click on a card to
+        explore details.</p>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-        <!-- NEW PROJECT: Genetic Disease Risk Predictor -->
+        <!-- NEW PROJECT: Genetic Disease Risk Predictor with TILT -->
         <div onclick="openModal('modal-genetic')"
-          class="glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5">
-          <div class="h-48 overflow-hidden relative">
+          class="tilt-card glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5 relative bg-gray-800/40">
+          <div class="h-56 overflow-hidden relative">
             <img src="images/genetic-preview.png" alt="Genetic Predictor"
-              class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-80"></div>
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-90"></div>
             <div class="absolute bottom-4 left-4">
-              <span class="px-2 py-1 bg-purple-600/80 text-xs rounded text-white font-medium backdrop-blur">AI /
-                ML</span>
+              <span
+                class="px-2 py-1 bg-purple-600/80 text-xs rounded text-white font-medium backdrop-blur shadow-lg border border-purple-400/30">AI
+                / ML</span>
             </div>
           </div>
-          <div class="p-6">
-            <h4 class="text-xl font-bold mb-2 text-white group-hover:text-blue-400 transition">Genetic Risk Predictor
-            </h4>
-            <p class="text-gray-400 text-sm mb-4 line-clamp-2">An AI-powered platform predicting risks for 5+ genetic
-              diseases using advanced Machine Learning algorithms.</p>
-            <div class="flex items-center text-blue-400 text-sm font-medium">
-              Learn more <span class="ml-1 group-hover:translate-x-1 transition">→</span>
+          <div class="p-6 relative z-10 -mt-10">
+            <h4 class="text-2xl font-bold mb-2 text-white group-hover:text-blue-400 transition drop-shadow-md">Genetic
+              Risk Predictor</h4>
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2 h-10">AI-powered platform predicting risks for 5+ genetic
+              diseases using advanced ML algorithms.</p>
+            <div class="flex items-center text-blue-400 text-sm font-bold uppercase tracking-wide">
+              View Details <span class="ml-2 group-hover:translate-x-1 transition text-lg">→</span>
             </div>
           </div>
         </div>
 
         <!-- Medwise -->
         <div onclick="openModal('modal-medwise')"
-          class="glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5">
-          <div class="h-48 overflow-hidden relative">
+          class="tilt-card glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5 relative bg-gray-800/40">
+          <div class="h-56 overflow-hidden relative">
             <img src="images/medwise.png" alt="Medwise"
-              class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-80"></div>
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-90"></div>
             <div class="absolute bottom-4 left-4">
-              <span class="px-2 py-1 bg-green-600/80 text-xs rounded text-white font-medium backdrop-blur">MERN
+              <span
+                class="px-2 py-1 bg-green-600/80 text-xs rounded text-white font-medium backdrop-blur shadow-lg border border-green-400/30">MERN
                 Stack</span>
             </div>
           </div>
-          <div class="p-6">
-            <h4 class="text-xl font-bold mb-2 text-white group-hover:text-blue-400 transition">Medwise</h4>
-            <p class="text-gray-400 text-sm mb-4 line-clamp-2">Comprehensive healthcare platform connecting patients and
-              doctors with appointment management.</p>
-            <div class="flex items-center text-blue-400 text-sm font-medium">
-              Learn more <span class="ml-1 group-hover:translate-x-1 transition">→</span>
+          <div class="p-6 relative z-10 -mt-10">
+            <h4 class="text-2xl font-bold mb-2 text-white group-hover:text-blue-400 transition drop-shadow-md">Medwise
+            </h4>
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2 h-10">Comprehensive healthcare platform connecting
+              patients and doctors with appointment management.</p>
+            <div class="flex items-center text-blue-400 text-sm font-bold uppercase tracking-wide">
+              View Details <span class="ml-2 group-hover:translate-x-1 transition text-lg">→</span>
             </div>
           </div>
         </div>
 
         <!-- Chatter -->
         <div onclick="openModal('modal-chatter')"
-          class="glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5">
-          <div class="h-48 overflow-hidden relative">
+          class="tilt-card glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5 relative bg-gray-800/40">
+          <div class="h-56 overflow-hidden relative">
             <img src="images/chatter.webp" alt="Chatter"
-              class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-80"></div>
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-90"></div>
             <div class="absolute bottom-4 left-4">
               <span
-                class="px-2 py-1 bg-blue-600/80 text-xs rounded text-white font-medium backdrop-blur">Real-time</span>
+                class="px-2 py-1 bg-blue-600/80 text-xs rounded text-white font-medium backdrop-blur shadow-lg border border-blue-400/30">Real-time</span>
             </div>
           </div>
-          <div class="p-6">
-            <h4 class="text-xl font-bold mb-2 text-white group-hover:text-blue-400 transition">Chatter</h4>
-            <p class="text-gray-400 text-sm mb-4 line-clamp-2">Secure, real-time messaging application featuring
+          <div class="p-6 relative z-10 -mt-10">
+            <h4 class="text-2xl font-bold mb-2 text-white group-hover:text-blue-400 transition drop-shadow-md">Chatter
+            </h4>
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2 h-10">Secure, real-time messaging application featuring
               encrypted chats and instant delivery.</p>
-            <div class="flex items-center text-blue-400 text-sm font-medium">
-              Learn more <span class="ml-1 group-hover:translate-x-1 transition">→</span>
+            <div class="flex items-center text-blue-400 text-sm font-bold uppercase tracking-wide">
+              View Details <span class="ml-2 group-hover:translate-x-1 transition text-lg">→</span>
             </div>
           </div>
         </div>
 
         <!-- Simon Game -->
         <div onclick="openModal('modal-simon')"
-          class="glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5">
-          <div class="h-48 overflow-hidden relative">
+          class="tilt-card glass rounded-2xl overflow-hidden group cursor-pointer hover:shadow-blue-500/20 transition duration-300 border border-white/5 relative bg-gray-800/40">
+          <div class="h-56 overflow-hidden relative">
             <img src="images/simon.png" alt="Simon Game"
-              class="w-full h-full object-cover group-hover:scale-110 transition duration-500 opacity-80">
-            <!-- Lower opacity since it's likely a simple graphic -->
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-80"></div>
+              class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out opacity-80">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-90"></div>
             <div class="absolute bottom-4 left-4">
               <span
-                class="px-2 py-1 bg-yellow-600/80 text-xs rounded text-white font-medium backdrop-blur">JavaScript</span>
+                class="px-2 py-1 bg-yellow-600/80 text-xs rounded text-white font-medium backdrop-blur shadow-lg border border-yellow-400/30">JavaScript</span>
             </div>
           </div>
-          <div class="p-6">
-            <h4 class="text-xl font-bold mb-2 text-white group-hover:text-blue-400 transition">Simon Game</h4>
-            <p class="text-gray-400 text-sm mb-4 line-clamp-2">Classic memory game built with vanilla JavaScript,
+          <div class="p-6 relative z-10 -mt-10">
+            <h4 class="text-2xl font-bold mb-2 text-white group-hover:text-blue-400 transition drop-shadow-md">Simon
+              Game</h4>
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2 h-10">Classic memory game built with vanilla JavaScript,
               featuring progressive difficulty.</p>
-            <div class="flex items-center text-blue-400 text-sm font-medium">
-              Learn more <span class="ml-1 group-hover:translate-x-1 transition">→</span>
+            <div class="flex items-center text-blue-400 text-sm font-bold uppercase tracking-wide">
+              View Details <span class="ml-2 group-hover:translate-x-1 transition text-lg">→</span>
             </div>
           </div>
         </div>
@@ -450,37 +519,59 @@
     </div>
   </section>
 
-  <!-- Modals (Hidden by default) -->
+  <!-- REDESIGNED MODALS (Split Layout) -->
 
   <!-- Genetic Risk Predictor Modal -->
   <div id="modal-genetic"
-    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
     onclick="if(event.target === this) closeModal('modal-genetic')">
     <div
-      class="glass-heavy rounded-2xl max-w-2xl w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300 border border-gray-700">
+      class="modal-content glass-heavy rounded-2xl max-w-5xl w-full p-0 relative border border-gray-700 overflow-hidden flex flex-col md:flex-row shadow-2xl shadow-purple-500/10">
       <button onclick="closeModal('modal-genetic')"
-        class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2">✕</button>
+        class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
 
-      <h3 class="text-2xl font-bold text-white mb-2">Genetic Disease Risk Predictor</h3>
-      <p class="text-blue-400 text-sm mb-6">Python · Machine Learning · React</p>
-
-      <img src="images/genetic-preview.png" alt="Preview"
-        class="w-full rounded-lg mb-6 border border-gray-700 shadow-lg">
-
-      <div class="space-y-4 text-gray-300">
-        <p>An advanced prediction system designed to assess the risk of genetic disorders. The application bridges
-          complex ML models with a user-friendly web interface.</p>
-        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-          <li>Predicts risk for Beta Thalassemia, Cystic Fibrosis, etc.</li>
-          <li>Restful API backend for real-time inference.</li>
-          <li>Clean, responsive frontend for easy data input.</li>
-        </ul>
+      <!-- Image Side -->
+      <div class="w-full md:w-1/2 h-64 md:h-auto relative">
+        <img src="images/genetic-preview.png" alt="Genetic Preview" class="w-full h-full object-cover">
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900">
+        </div>
       </div>
 
-      <div class="mt-8 flex gap-4">
+      <!-- Content Side -->
+      <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+        <h3 class="text-3xl font-bold text-white mb-2">Genetic Disease Risk Predictor</h3>
+        <div class="flex gap-2 mb-6">
+          <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded border border-blue-500/20">Machine
+            Learning</span>
+          <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded border border-blue-500/20">Python</span>
+          <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded border border-blue-500/20">React</span>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-6">
+          A cutting-edge health-tech application designed to assist in early diagnosis. This system leverages trained ML
+          models to analyze patient symptoms and genetic markers, providing risk assessments for conditions like Beta
+          Thalassemia and Cystic Fibrosis.
+        </p>
+
+        <div class="space-y-3 mb-8">
+          <div class="flex items-start">
+            <span class="text-green-400 mr-3">✓</span>
+            <span class="text-sm text-gray-400">High-accuracy prediction models</span>
+          </div>
+          <div class="flex items-start">
+            <span class="text-green-400 mr-3">✓</span>
+            <span class="text-sm text-gray-400">Secure patient data handling</span>
+          </div>
+          <div class="flex items-start">
+            <span class="text-green-400 mr-3">✓</span>
+            <span class="text-sm text-gray-400">Interactive and responsive dashboard</span>
+          </div>
+        </div>
+
         <a href="https://github.com/MayankYadav013/Genetic-Disease-Risk-Predictor" target="_blank"
-          class="flex-1 bg-blue-600 hover:bg-blue-700 text-center py-3 rounded-xl text-white font-semibold transition">
-          View on GitHub
+          class="block w-full text-center py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-600/20 hover:scale-[1.02]">
+          View Source Code on GitHub ↗
         </a>
       </div>
     </div>
@@ -488,78 +579,101 @@
 
   <!-- Medwise Modal -->
   <div id="modal-medwise"
-    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
     onclick="if(event.target === this) closeModal('modal-medwise')">
     <div
-      class="glass-heavy rounded-2xl max-w-2xl w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300 border border-gray-700">
+      class="modal-content glass-heavy rounded-2xl max-w-5xl w-full p-0 relative border border-gray-700 overflow-hidden flex flex-col md:flex-row shadow-2xl shadow-green-500/10">
       <button onclick="closeModal('modal-medwise')"
-        class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2">✕</button>
-      <h3 class="text-2xl font-bold text-white mb-2">Medwise</h3>
-      <p class="text-green-400 text-sm mb-6">MERN Stack · Healthcare</p>
-      <img src="images/medwise.png" alt="Preview" class="w-full rounded-lg mb-6 border border-gray-700 shadow-lg">
-      <div class="space-y-4 text-gray-300">
-        <p>A digital health platform that simplifies the interaction between patients and healthcare providers.</p>
-        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-          <li>Role-based dashboards (Doctor/Patient).</li>
-          <li>Secure appointment booking system.</li>
-        </ul>
+        class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
+      <div class="w-full md:w-1/2 h-64 md:h-auto relative">
+        <img src="images/medwise.png" alt="Medwise Preview" class="w-full h-full object-cover">
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900">
+        </div>
       </div>
-      <div class="mt-8 flex gap-4">
+      <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+        <h3 class="text-3xl font-bold text-white mb-2">Medwise</h3>
+        <div class="flex gap-2 mb-6">
+          <span class="px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded border border-green-500/20">MERN
+            Stack</span>
+          <span
+            class="px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded border border-green-500/20">Healthcare</span>
+        </div>
+        <p class="text-gray-300 leading-relaxed mb-6">
+          Medwise bridges the communication gap between healthcare providers and patients. It offers distinct portals
+          for users to book appointments, view medical history, and for doctors to manage schedules.
+        </p>
         <a href="https://github.com/MayankYadav013/Medwise" target="_blank"
-          class="flex-1 bg-blue-600 hover:bg-blue-700 text-center py-3 rounded-xl text-white font-semibold transition">View
-          on GitHub</a>
+          class="block w-full text-center py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition shadow-lg shadow-green-600/20 hover:scale-[1.02]">
+          View Source Code on GitHub ↗
+        </a>
       </div>
     </div>
   </div>
 
   <!-- Chatter Modal -->
   <div id="modal-chatter"
-    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
     onclick="if(event.target === this) closeModal('modal-chatter')">
     <div
-      class="glass-heavy rounded-2xl max-w-2xl w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300 border border-gray-700">
+      class="modal-content glass-heavy rounded-2xl max-w-5xl w-full p-0 relative border border-gray-700 overflow-hidden flex flex-col md:flex-row shadow-2xl shadow-blue-500/10">
       <button onclick="closeModal('modal-chatter')"
-        class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2">✕</button>
-      <h3 class="text-2xl font-bold text-white mb-2">Chatter</h3>
-      <p class="text-blue-400 text-sm mb-6">Socket.io · Node.js · Security</p>
-      <img src="images/chatter.webp" alt="Preview" class="w-full rounded-lg mb-6 border border-gray-700 shadow-lg">
-      <div class="space-y-4 text-gray-300">
-        <p>A real-time chat application focusing on privacy and speed.</p>
-        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-          <li>Instant messaging with Socket.io.</li>
-          <li>JWT Authentication for security.</li>
-        </ul>
+        class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
+      <div class="w-full md:w-1/2 h-64 md:h-auto relative">
+        <img src="images/chatter.webp" alt="Chatter Preview" class="w-full h-full object-cover">
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900">
+        </div>
       </div>
-      <div class="mt-8 flex gap-4">
+      <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+        <h3 class="text-3xl font-bold text-white mb-2">Chatter</h3>
+        <div class="flex gap-2 mb-6">
+          <span
+            class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded border border-blue-500/20">Socket.io</span>
+          <span class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded border border-blue-500/20">Node.js</span>
+        </div>
+        <p class="text-gray-300 leading-relaxed mb-6">
+          Experience seamless real-time communication. Chatter provides a secure environment for instant messaging,
+          featuring room-based chats and persistent message history using MongoDB.
+        </p>
         <a href="https://github.com/MayankYadav013/Chatter" target="_blank"
-          class="flex-1 bg-blue-600 hover:bg-blue-700 text-center py-3 rounded-xl text-white font-semibold transition">View
-          on GitHub</a>
+          class="block w-full text-center py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-600/20 hover:scale-[1.02]">
+          View Source Code on GitHub ↗
+        </a>
       </div>
     </div>
   </div>
 
   <!-- Simon Modal -->
   <div id="modal-simon"
-    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
     onclick="if(event.target === this) closeModal('modal-simon')">
     <div
-      class="glass-heavy rounded-2xl max-w-2xl w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300 border border-gray-700">
+      class="modal-content glass-heavy rounded-2xl max-w-5xl w-full p-0 relative border border-gray-700 overflow-hidden flex flex-col md:flex-row shadow-2xl shadow-yellow-500/10">
       <button onclick="closeModal('modal-simon')"
-        class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2">✕</button>
-      <h3 class="text-2xl font-bold text-white mb-2">Simon Game</h3>
-      <p class="text-yellow-400 text-sm mb-6">Vanilla JS · DOM Manipulation</p>
-      <img src="images/simon.png" alt="Preview" class="w-full rounded-lg mb-6 border border-gray-700 shadow-lg">
-      <div class="space-y-4 text-gray-300">
-        <p>A web-based version of the classic electronic memory game.</p>
-        <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-          <li>Interactive sound and light patterns.</li>
-          <li>Built completely with vanilla JS and CSS.</li>
-        </ul>
+        class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center transition">✕</button>
+      <div class="w-full md:w-1/2 h-64 md:h-auto relative">
+        <img src="images/simon.png" alt="Simon Preview" class="w-full h-full object-cover opacity-80">
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900">
+        </div>
       </div>
-      <div class="mt-8 flex gap-4">
+      <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+        <h3 class="text-3xl font-bold text-white mb-2">Simon Game</h3>
+        <div class="flex gap-2 mb-6">
+          <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 text-xs rounded border border-yellow-500/20">Vanilla
+            JS</span>
+          <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 text-xs rounded border border-yellow-500/20">Game
+            Dev</span>
+        </div>
+        <p class="text-gray-300 leading-relaxed mb-6">
+          A digital recreation of the classic electronic memory game. Test your memory skills by following the sequence
+          of lights and sounds that gets progressively harder.
+        </p>
         <a href="https://github.com/MayankYadav013/Simon-Game" target="_blank"
-          class="flex-1 bg-blue-600 hover:bg-blue-700 text-center py-3 rounded-xl text-white font-semibold transition">View
-          on GitHub</a>
+          class="block w-full text-center py-4 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl transition shadow-lg shadow-yellow-600/20 hover:scale-[1.02]">
+          View Source Code on GitHub ↗
+        </a>
       </div>
     </div>
   </div>
@@ -567,7 +681,7 @@
   <!-- Contact Section -->
   <section id="contact" class="py-24 px-6">
     <div class="max-w-4xl mx-auto">
-      <div class="glass p-8 md:p-12 rounded-3xl text-center">
+      <div class="tilt-card glass p-8 md:p-12 rounded-3xl text-center" data-tilt-max="2">
         <h2 class="text-3xl md:text-5xl font-bold mb-6">Let's Build Something Amazing</h2>
         <p class="text-gray-400 mb-10 max-w-xl mx-auto">Have a project in mind or want to discuss AI? Send me a message
           and let's chat.</p>
